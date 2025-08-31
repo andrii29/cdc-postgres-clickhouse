@@ -28,6 +28,8 @@ docker compose exec -it postgres psql -Upostgres test
 ```
 ```sh
 SELECT * FROM orders;
+
+\q
 ```
 ## Start Debezium Connector
 
@@ -58,7 +60,7 @@ curl -i -X DELETE http://localhost:8083/connectors/dbz # skip this command for n
 You can monitor the Debezium connector logs for troubleshooting or to verify CDC events:
 
 ```sh
-docker compose logs kconnect -f
+docker compose logs kconnect
 ```
 
 ## Verify CDC Events in Kafka
@@ -88,6 +90,8 @@ VALUES (
 );
 
 UPDATE orders SET comment = 'Updated comment' WHERE id = 7;
+
+\q
 ```
 These operations will produce new messages in the Kafka topic, which you can observe in the Kafka UI.
 
@@ -103,11 +107,8 @@ DATABASE_URL="clickhouse://default:123@127.0.0.1:9000/default" dbmate -d ./click
 To connect to ClickHouse and check the contents of the `orders` table:
 
 ```sh
-docker compose exec -it clickhouse clickhouse-client
-```
-```sh
-SELECT * FROM default.orders; # empty output
-SHOW CREATE TABLE default.orders;
+docker compose exec -it clickhouse clickhouse-client -f Pretty -q "SELECT * FROM default.orders;" # empty output
+docker compose exec -it clickhouse clickhouse-client -f Pretty -q "SHOW CREATE TABLE default.orders;"
 ```
 
 ## Start ClickHouse Sink Connector
@@ -139,10 +140,7 @@ curl -i -X DELETE http://localhost:8083/connectors/clickhouse-sink # skip this c
 
 Check new records are present in Clickhouse:
 ```sh
-docker compose exec -it clickhouse clickhouse-client
-```
-```sh
-SELECT * FROM default.orders;
+docker compose exec -it clickhouse clickhouse-client -f Pretty -q "SELECT * FROM default.orders;"
 ```
 
 ## Insert and Update the Same Record Multiple Times
@@ -162,8 +160,11 @@ VALUES (
 	ROUND((random() * 500)::numeric, 2), -- price between 0 and 500 with 2 decimals
 	(ARRAY['First order','Test purchase','Sample comment','High value order','Repeat buyer'])[floor(random() * 5 + 1)]
 );
+
 UPDATE orders SET comment = 'Updated comment 1' WHERE id = 7;
 UPDATE orders SET comment = 'Updated comment 2' WHERE id = 7;
+
+\q
 ```
 
 ## Check Results in ClickHouse
@@ -172,11 +173,9 @@ To view the records in ClickHouse, run the following queries:
 
 Without FINAL (shows all versions) and with:
 ```sh
-docker compose exec -it clickhouse clickhouse-client
-```
-```sql
-SELECT * FROM orders WHERE id = '7' ORDER BY updated_at DESC;
-SELECT * FROM orders FINAL WHERE id = '7' ORDER BY updated_at DESC;
+docker compose exec -it clickhouse clickhouse-client -f Pretty -q "SELECT * FROM orders WHERE id = '7' ORDER BY updated_at DESC;"
+docker compose exec -it clickhouse clickhouse-client -f Pretty -q "SELECT * FROM orders FINAL WHERE id = '7' ORDER BY updated_at DESC;"
+
 ```
 
 ## Run Snapshot via Kafka UI
@@ -265,6 +264,8 @@ VALUES (
 	ROUND((random() * 500)::numeric, 2), -- price between 0 and 500 with 2 decimals
 	(ARRAY['First order','Test purchase','Sample comment','High value order','Repeat buyer'])[floor(random() * 5 + 1)]
 );
+
+\q
 ```
 
 To check messages in Kafka UI:
