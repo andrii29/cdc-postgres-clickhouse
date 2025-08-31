@@ -25,6 +25,8 @@ After running migrations, you can check the status and contents of the `orders` 
 
 ```sh
 docker compose exec -it postgres psql -Upostgres test
+```
+```sh
 SELECT * FROM orders;
 ```
 ## Start Debezium Connector
@@ -45,7 +47,7 @@ curl -i http://localhost:8083/connectors/dbz/status
 To restart the connector task (useful if you change the configuration):
 
 ```sh
-curl -X POST http://localhost:8083/connectors/dbz/tasks/0/restart
+curl -X POST http://localhost:8083/connectors/dbz/tasks/0/restart # skip this command for now
 ```
 
 To remove the connector:
@@ -73,6 +75,8 @@ To generate CDC events, insert and update records in the `orders` table:
 
 ```sh
 docker compose exec -it postgres psql -Upostgres test
+```
+```sh
 INSERT INTO orders (seller_id, buyer_id, created_at, updated_at, price, comment)
 VALUES (
 	(FLOOR(random() * 100 + 1))::int, -- seller_id between 1 and 100
@@ -100,6 +104,8 @@ To connect to ClickHouse and check the contents of the `orders` table:
 
 ```sh
 docker compose exec -it clickhouse clickhouse-client
+```
+```sh
 SELECT * FROM default.orders; # empty output
 SHOW CREATE TABLE default.orders;
 ```
@@ -122,7 +128,7 @@ curl -i http://localhost:8083/connectors/clickhouse-sink/status
 Restart the connector task (useful after configuration changes):
 
 ```sh
-curl -X POST http://localhost:8083/connectors/clickhouse-sink/tasks/0/restart
+curl -X POST http://localhost:8083/connectors/clickhouse-sink/tasks/0/restart # skip this command for now
 ```
 
 Remove the connector:
@@ -134,6 +140,8 @@ curl -i -X DELETE http://localhost:8083/connectors/clickhouse-sink # skip this c
 Check new records are present in Clickhouse:
 ```sh
 docker compose exec -it clickhouse clickhouse-client
+```
+```sh
 SELECT * FROM default.orders;
 ```
 
@@ -143,6 +151,8 @@ To test CDC and deduplication in ClickHouse, insert a record and update the same
 
 ```sh
 docker compose exec -it postgres psql -Upostgres test
+```
+```sh
 INSERT INTO orders (seller_id, buyer_id, created_at, updated_at, price, comment)
 VALUES (
 	(FLOOR(random() * 100 + 1))::int, -- seller_id between 1 and 100
@@ -161,8 +171,10 @@ UPDATE orders SET comment = 'Updated comment 2' WHERE id = 7;
 To view the records in ClickHouse, run the following queries:
 
 Without FINAL (shows all versions) and with:
-```sql
+```sh
 docker compose exec -it clickhouse clickhouse-client
+```
+```sql
 SELECT * FROM orders WHERE id = '7' ORDER BY updated_at DESC;
 SELECT * FROM orders FINAL WHERE id = '7' ORDER BY updated_at DESC;
 ```
@@ -242,6 +254,8 @@ To generate data in PostgreSQL for Avro testing, run:
 
 ```sh
 docker compose exec -it postgres psql -Upostgres test
+```
+```sh
 INSERT INTO orders (seller_id, buyer_id, created_at, updated_at, price, comment)
 VALUES (
 	(FLOOR(random() * 100 + 1))::int, -- seller_id between 1 and 100
