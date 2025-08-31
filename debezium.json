@@ -1,0 +1,42 @@
+{
+  "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+
+  "database.hostname": "postgres",
+  "database.port": "5432",
+  "database.user": "debezium",
+  "database.password": "dbz",
+  "database.dbname": "test",
+
+  "slot.name": "dbz_slot",
+  "plugin.name": "pgoutput",
+  "publication.name": "dbz_pub",
+  "publication.autocreate.mode": "disabled",
+
+  "topic.prefix": "dbz",
+  "schema.include.list": "public",
+  "table.include.list": "public.orders",
+
+  "transforms": "unwrap",
+  "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+
+  "snapshot.mode": "when_needed",
+  "snapshot.include.collection.list": "public.orders",
+  "snapshot.select.statement.overrides": "public.orders",
+  "snapshot.select.statement.overrides.public.orders": "SELECT * FROM public.orders WHERE id >= 5",
+  "snapshot.fetch.size": "20000",
+  "incremental.snapshot.chunk.size": "20000",
+  "read.only": "true",
+  "skipped.operations": "t,d",
+
+  "max.batch.size": "40000",
+  "max.queue.size": "100000",
+
+  "decimal.handling.mode": "double",
+
+  "signal.enabled.channels": "kafka",
+  "signal.kafka.bootstrap.servers": "kafka:19092",
+  "signal.kafka.topic": "dbz_signals",
+  "signal.data.collection": "dbz_signals",
+
+  "producer.override.compression.type": "zstd"
+}

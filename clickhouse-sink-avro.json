@@ -1,0 +1,21 @@
+{
+  "connector.class": "com.clickhouse.kafka.connect.ClickHouseSinkConnector",
+  "tasks.max": "1",
+
+  "topics": "dbz.public.orders",
+  "topic2TableMap": "dbz.public.orders=orders",
+
+  "hostname": "clickhouse",
+  "port": "8123",
+  "username": "default",
+  "password": "123",
+  "ssl": "false",
+  "clickhouse.table.name.format": "orders",
+
+  "key.converter": "io.confluent.connect.avro.AvroConverter",
+  "key.converter.schema.registry.url": "http://schema-registry:8081",
+  "value.converter": "io.confluent.connect.avro.AvroConverter",
+  "value.converter.schema.registry.url": "http://schema-registry:8081",
+
+  "consumer.override.max.poll.records": "16384"
+}

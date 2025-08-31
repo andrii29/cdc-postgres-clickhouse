@@ -1,0 +1,85 @@
+---
+
+services:
+  postgres:
+    image: postgres:16
+    command: "postgres -c max_wal_senders=35 -c wal_level=logical -c log_statement=all -c log_min_duration_statement=0 -c max_wal_size=5GB -c wal_keep_size=2GB"
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=123
+      - POSTGRES_DB=test
+
+  kafka:
+    image: apache/kafka:4.0.0
+    ports:
+      - 19092:19092
+    environment:
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_LISTENERS=PLAINTEXT://:9093,PLAINTEXT_HOST://:19092,CONTROLLER://localhost:19093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9093,PLAINTEXT_HOST://kafka:19092
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@localhost:19093
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - KAFKA_COMPRESSION_TYPE=zstd
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_NUM_PARTITIONS=10
+      - CLUSTER_ID=test
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.2
+    ports:
+      - 8080:8080
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "test"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "kafka:19092"
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: "http://schema-registry:8081"
+
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:8.0.0
+    hostname: schema-registry
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "kafka:19092"
+
+  kconnect:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8083:8083
+    environment:
+      REST_ADVERTISED_HOST_NAME: connect
+      BOOTSTRAP_SERVERS: kafka:19092
+      REST_PORT: 8083
+      GROUP_ID: connect-cluster
+      CONFIG_STORAGE_TOPIC: connect-offsets
+      CONFIG_STORAGE_REPLICATION_FACTOR: -1
+      OFFSET_STORAGE_TOPIC: connect-configs
+      OFFSET_STORAGE_REPLICATION_FACTOR: -1
+      STATUS_STORAGE_TOPIC: connect-status
+      STATUS_STORAGE_REPLICATION_FACTOR: -1
+      KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.7
+    container_name: clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: '123'
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
