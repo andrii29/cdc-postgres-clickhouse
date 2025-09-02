@@ -11,6 +11,7 @@
   "password": "123",
   "ssl": "false",
   "clickhouse.table.name.format": "orders",
+  "ignorePartitionsWhenBatching": "true",
 
   "consumer.override.max.poll.records": "16384"
 }

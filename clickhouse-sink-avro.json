@@ -11,6 +11,7 @@
   "password": "123",
   "ssl": "false",
   "clickhouse.table.name.format": "orders",
+  "ignorePartitionsWhenBatching": "true",
 
   "key.converter": "io.confluent.connect.avro.AvroConverter",
   "key.converter.schema.registry.url": "http://schema-registry:8081",
