@@ -6,6 +6,7 @@ CREATE TABLE orders (
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     price DOUBLE PRECISION NOT NULL,
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
     comment TEXT
 );
 

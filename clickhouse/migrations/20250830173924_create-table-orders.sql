@@ -7,6 +7,7 @@ CREATE TABLE default.orders
     created_at DateTime64(3, 'UTC') DEFAULT now(),
     updated_at DateTime64(3, 'UTC') DEFAULT now(),
     price Float64,
+    deleted Bool,
     comment String
 )
 ENGINE = ReplacingMergeTree(updated_at)
